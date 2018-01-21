@@ -9,6 +9,9 @@
 #include <windows.h>
 #include <shlobj.h>
 #endif
+#ifdef __linux
+#include <sys/stat.h> 
+#endif
 
 int last_got_accel;
 float cur_accel_values[3];
