@@ -1259,6 +1259,7 @@ void resize_menus(float scale)
 {
     int i,j;
 
+    SDL_Log("Resizing menus, scale is %f\n",scale);
     for(i=0;i<menus_no;i++)
     {
         if(!menus[i].all_screen)
@@ -2327,7 +2328,11 @@ int main(int argc, char *argv[])
 #ifndef __ANDROID__
     //if(SDL_CreateWindowAndRenderer(windows_x_len, windows_y_len, 0, &window, &renderer) < 0)
     //exit(2);
-    window=SDL_CreateWindow("1 million particles", 100, 100, windows_x_len, windows_y_len, 0);
+#ifdef DROIDIAN
+    window=SDL_CreateWindow("1 million particles", 100, 100, windows_x_len, windows_y_len, SDL_WINDOW_FULLSCREEN_DESKTOP|SDL_WINDOW_ALLOW_HIGHDPI|SDL_WINDOW_INPUT_GRABBED|SDL_WINDOW_OPENGL);
+#else
+	window=SDL_CreateWindow("1 million particles", 100, 100, windows_x_len, windows_y_len,0);
+#endif	
     renderer=SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
     //renderer=SDL_CreateRenderer(window, -1, 0);
 
@@ -2349,6 +2354,11 @@ int main(int argc, char *argv[])
     }
 #endif // __ANDROID__
 
+#ifdef DROIDIAN
+    windows_x_len=real_windows_x_len;
+    windows_y_len=real_windows_y_len;
+#endif
+
     rendering_texture=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING,windows_x_len, windows_y_len);
     SDL_SetTextureBlendMode(rendering_texture,SDL_BLENDMODE_NONE);
     pitch=windows_x_len*4;
@@ -2365,6 +2375,13 @@ int main(int argc, char *argv[])
     init_menus();
     if(have_conf)menus[main_menu_id].in_use=0;
 
+
+    SDL_Log("Real x len: %i\n",real_windows_x_len);
+    SDL_Log("Real y len: %i\n",real_windows_y_len);
+
+    SDL_Log("Win x len: %i\n",windows_x_len);
+    SDL_Log("Win y len: %i\n",windows_y_len);
+
     if(real_windows_x_len<800)
     {
         menus_scale=0.5f;
@@ -2373,13 +2390,13 @@ int main(int argc, char *argv[])
 
     if(real_windows_x_len>=1600 && real_windows_x_len<=1920)
     {
-        menus_scale=1.5f;
+        menus_scale=1.2f;
         resize_menus(menus_scale);
     }
     else
     if(real_windows_x_len>1920)
     {
-        menus_scale=2.2f;
+        menus_scale=1.5f;
         resize_menus(menus_scale);
     }
 
@@ -2410,6 +2427,8 @@ int main(int argc, char *argv[])
             }
             if(event.type == SDL_KEYDOWN)
             {
+				SDL_Log("Got a keydown event. key: %i\n",event.key.keysym.sym);
+				
                 if(event.key.keysym.sym == SDLK_AC_BACK || event.key.keysym.sym ==SDLK_AC_BOOKMARKS)
                 {
                     if(menus[main_menu_id].in_use)
@@ -2502,6 +2521,9 @@ int main(int argc, char *argv[])
         if(event.type == SDL_FINGERDOWN)last_time_mouse_down=SDL_GetTicks();
 
         pressure=event.tfinger.pressure;
+		
+		if(event.type==SDL_FINGERMOTION)SDL_Log("Got finger motion event");
+		if(event.type==SDL_FINGERDOWN)SDL_Log("Got finger down event");
 
         finger_delta_x=event.tfinger.dx;
         finger_delta_y=event.tfinger.dy;
@@ -2517,6 +2539,9 @@ int main(int argc, char *argv[])
             y_mouse_pos=event.tfinger.y*real_windows_y_len;
         }
 
+		SDL_Log("Finger x: %i,y: %i",x_mouse_pos,y_mouse_pos);
+		
+		
         handle_touch_movement();
     }
 
